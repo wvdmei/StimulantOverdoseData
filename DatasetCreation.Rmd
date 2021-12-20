@@ -1,0 +1,19 @@
+---
+title: "Dataset Creation"
+author: "Willem van der Mei"
+date: "12/20/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Introduction
+
+This is a living document that will contain code and documentation for creation of a dataset of social determinants for a project on stimulant overdoses. Changes to this document will be recorded in commits to GitHub.
+
+# Census API Data
+
+Much of the social determinants of health data can be gathered from the 1-Year estimates of the American Community Survey. This data can be accessed directly through the US Census API.
+

@@ -7,13 +7,60 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
 ```
 
 # Introduction
 
-This is a living document that will contain code and documentation for creation of a dataset of social determinants for a project on stimulant overdoses. Changes to this document will be recorded in commits to GitHub.
+This is a living document that will contain code and documentation for creation of a data set of social determinants for a project on stimulant overdoses. Changes to this document will be recorded in commits to GitHub. The GitHub repository can be found here: https://github.com/wvdmei/StimulantOverdoseData. 
 
 # Census API Data
 
-Much of the social determinants of health data can be gathered from the 1-Year estimates of the American Community Survey. This data can be accessed directly through the US Census API.
+Much of the social determinants of health data can be gathered on the ZIP Code Tabulation Area (ZCTA) level from the 5-Year estimates of the American Community Survey. This data can be accessed directly through the US Census API. 5-Year estimates were chosen because they are the most precise and available for smaller geographies, such as ZCTA.
 
+## Set up an API Key
+
+An API key, which you will need to download data through the API, can be procured here: https://api.census.gov/data/key_signup.html. Only one API key can be assigned to a given email address, so make sure it is recorded in a save place. After obtaining a key, it needs to be installed and loaded.
+
+In the code block below, we load packages and the API key from a text file and set it up for use with the tidy census package.
+
+```{r, message=FALSE}
+library(tidycensus)
+library(textreadr)
+apiKey <- textreadr::read_rtf("ApiKey.rtf")
+apiKey <- gsub(pattern = '"', replacement = "", x = apiKey)
+tidycensus::census_api_key(apiKey, overwrite = TRUE)
+```
+
+Here we download the list of variables from the API for the 2019 5-year estimates from the American Community Survey. A list of variable can also be found here: https://api.census.gov/data/2019/acs/acs1/subject/variables.html. 
+
+```{r}
+variableList <- tidycensus::load_variables("2019", dataset = "acs5")
+```
+
+To find variables for a specific table, you can download and search the file for the table name here: https://www2.census.gov/programs-surveys/acs/tech_docs/table_shells/table_lists/2019_DataProductList.xlsx.
+In the block below, we pull up all variables for the 'POVERTY STATUS IN THE PAST 12 MONTHS BY SEX BY AGE' table.
+
+```{r}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "POVERTY STATUS IN THE PAST 12 MONTHS BY SEX BY AGE"))
+```
+
+Variable 'B17001_002' seems to provide the estimate we are interested in, i.e. total number of people whose income was below the poverty level in the past 12 months.
+
+In the code block below, we download all information on B17001_002 from the American Community Survey 5-Year Estimates for our year and geography of interest, which is ZCTA in 2019. The variable argument can take a vector of multiple variable names. This is recommended to reduce the number of API calls, since too many calls can result in having to wait a bit before making another API call.
+
+```{r}
+acsData <- tidycensus::get_acs(geography = "zip code tabulation area", variables = "B17001_002", year = 2019, survey = "acs5")
+```
+
+Looking at the first ten rows of data, the data frame returned has 5 columns, which are GEOID, NAME, variable, estimate, and moe. "GEOID" and "NAME" both contain the ZCTA and name also specifies the level of the geography. "variable" contains the name of the variable that was requested, and "estimate" and "moe" contain the value and margin of error of the variable, respectively. 
+
+```{r}
+head(acsData, 10) %>% kableExtra::kable()
+```
+
+Here we output the data frame.
+
+```{r eval = FALSE}
+readr::write_csv(acsData, "ACS_Data.csv")
+```

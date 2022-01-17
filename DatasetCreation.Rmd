@@ -62,7 +62,7 @@ In the block below, we pull up all variables for the 'EDUCATIONAL ATTAINMENT FOR
 dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER"))
 ```
 
-Variables 'B20004_001', 'B20004_002', 'B20004_003', 'B20004_004', 'B20004_005', 'B20004_006'seem to have relevant information on the total number of responses as well as relevant cutoffs, such as less than high school, high school graduate, and post-secondary degrees. These can be used to calculate the proportion of people with at least a bachelors or less than high school diploma, which may be relevant to the prediction model.
+Variables 'B15003_001', 'B15003_002', 'B15003_003', 'B15003_004', 'B15003_005', 'B15003_006', 'B15003_007', 'B15003_008', 'B15003_009', 'B15003_010', 'B15003_011', 'B15003_012', 'B15003_013', 'B15003_014', 'B15003_015', 'B15003_016', 'B15003_017', 'B15003_018', 'B15003_019', 'B15003_020', 'B15003_021', 'B15003_022', 'B15003_023', 'B15003_024', and 'B15003_025' seem to have relevant information on the total number of responses and levels of education completed.. These can be used to calculate the proportion of people with at least a bachelors or less than high school diploma, which may be relevant to the prediction model.
 
 ## Rent
 
@@ -120,7 +120,7 @@ In the code block below, we download all information on our variables of interes
 
 ```{r}
 # Create a character vector containing all the variables of interest, which will be downloaded by get_acs.
-variableNames <- c('B17001_001', 'B17001_002', 'B20004_001', 'B20004_002', 'B20004_003', 'B20004_004', 'B20004_005', 'B20004_006', 'B25064_001', 'B25071_001', 'B25014_001', 'B25014_002', 'B25014_008', 'B25014_003', 'B25014_004', 'B25014_005', 'B25014_006', 'B25014_007', 'B25014_009', 'B25014_010', 'B25014_011', 'B25014_012', 'B25014_013')
+variableNames <- c('B17001_001', 'B17001_002', 'B15003_001', 'B15003_002', 'B15003_003', 'B15003_004', 'B15003_005', 'B15003_006', 'B15003_007', 'B15003_008', 'B15003_009', 'B15003_010', 'B15003_011', 'B15003_012', 'B15003_013', 'B15003_014', 'B15003_015', 'B15003_016', 'B15003_017', 'B15003_018', 'B15003_019', 'B15003_020', 'B15003_021', 'B15003_022', 'B15003_023', 'B15003_024', 'B15003_025', 'B25064_001', 'B25071_001', 'B25014_001', 'B25014_002', 'B25014_008', 'B25014_003', 'B25014_004', 'B25014_005', 'B25014_006', 'B25014_007', 'B25014_009', 'B25014_010', 'B25014_011', 'B25014_012', 'B25014_013')
 
 acsData <- tidycensus::get_acs(geography = "zip code tabulation area", variables = variableNames, year = 2019, survey = "acs5")
 ```
@@ -151,5 +151,5 @@ head(acsDataReshaped, 10) %>% kableExtra::kable()
 Here we output the data frame.
 
 ```{r eval = FALSE}
-readr::write_csv(acsDataReshaped, "ACS_Data.csv")
+readr::write_csv(acsDataReshaped, "ACS_Data.csv", na = "")
 ```

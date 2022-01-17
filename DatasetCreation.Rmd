@@ -1,7 +1,7 @@
 ---
 title: "Dataset Creation"
 author: "Willem van der Mei"
-date: "12/20/2021"
+date: "1/17/2022"
 output: html_document
 ---
 
@@ -12,7 +12,7 @@ library(dplyr)
 
 # Introduction
 
-This is a living document that will contain code and documentation for creation of a data set of social determinants for a project on stimulant overdoses. Changes to this document will be recorded in commits to GitHub. The GitHub repository can be found here: https://github.com/wvdmei/StimulantOverdoseData. 
+This is a living document that will contain code and documentation for creation of a data set of social determinants for a project on stimulant overdoses. Changes to this document will be recorded in commits to GitHub. The GitHub repository can be found here: https://github.com/wvdmei/StimulantOverdoseData. Information on the variables included can be found in the data dictionary file in the GitHub repository. 
 
 # Census API Data
 
@@ -39,18 +39,90 @@ variableList <- tidycensus::load_variables("2019", dataset = "acs5")
 ```
 
 To find variables for a specific table, you can download and search the file for the table name here: https://www2.census.gov/programs-surveys/acs/tech_docs/table_shells/table_lists/2019_DataProductList.xlsx.
+
+# Variables of Interest
+
+The following section details the finding of specific variables of interest. Output from chunks searching the list of variables have been suppressed due to their length.
+
+## Poverty
+
 In the block below, we pull up all variables for the 'POVERTY STATUS IN THE PAST 12 MONTHS BY SEX BY AGE' table.
 
-```{r}
+```{r, results='hide'}
 dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "POVERTY STATUS IN THE PAST 12 MONTHS BY SEX BY AGE"))
 ```
 
-Variable 'B17001_002' seems to provide the estimate we are interested in, i.e. total number of people whose income was below the poverty level in the past 12 months.
+Variable 'B17001_002' seems to provide the estimate we are interested in, i.e. total number of people whose income was below the poverty level in the past 12 months. To get the denominator, we need information on the total number of people in the ZCTA, which can be found in 'B17001_001'.
 
-In the code block below, we download all information on B17001_002 from the American Community Survey 5-Year Estimates for our year and geography of interest, which is ZCTA in 2019. The variable argument can take a vector of multiple variable names. This is recommended to reduce the number of API calls, since too many calls can result in having to wait a bit before making another API call.
+## Educational Attainment
+
+In the block below, we pull up all variables for the 'EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER' table.
+
+```{r, results='hide'}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "EDUCATIONAL ATTAINMENT FOR THE POPULATION 25 YEARS AND OVER"))
+```
+
+Variables 'B20004_001', 'B20004_002', 'B20004_003', 'B20004_004', 'B20004_005', 'B20004_006'seem to have relevant information on the total number of responses as well as relevant cutoffs, such as less than high school, high school graduate, and post-secondary degrees. These can be used to calculate the proportion of people with at least a bachelors or less than high school diploma, which may be relevant to the prediction model.
+
+## Rent
+
+In the block below, we pull up all variables for tables with information on median gross rent.
+
+```{r, results='hide'}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "MEDIAN GROSS RENT"))
+```
+
+'B25064_001' has information on the median gross rent in dollars, and 'B25071_001' contains median gross rent as a percentage of household income.
+
+## Unemployment
+
+In the block below, we pull up all variables for tables with information on employment status for the population 16 years of age and older.
+
+```{r, results='hide'}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "EMPLOYMENT STATUS FOR THE POPULATION 16 YEARS AND OVER"))
+```
+
+Variables B23025_001, B23025_002, B23025_003, B23025_004, B23025_005, B23025_006, B23025_007 contain relevant information on employment, such as size of the labor force, unemployment within the labor force, and the number of people outside the labor force, which can be used to construct measures of unemployment.
+
+## Median Household Income
+
+In the block below, we pull up all variables for tables with information on median household income.
+
+```{r, results='hide'}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "MEDIAN HOUSEHOLD INCOME IN THE PAST 12 MONTHS"))
+```
+
+'B19013_001' contains information on inflation adjusted median household income.
+
+## Tenure
+
+In the block below, we pull up all variables for tables with information on tenure (owner vs. renter of a housing unit).
+
+```{r, results='hide'}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "TENURE BY OCCUPANTS PER ROOM"))
+```
+
+'B25014_001', 'B25014_002', and 'B25014_008' provide information on the number of renter-occupied units and owner-occupied units in a particular ZCTA.
+
+## Occupants per Room
+
+In the block below, we pull up all variables for tables with information on occupants per room.
+
+```{r, results='hide'}
+dplyr::filter(variableList, stringr::str_detect(string = concept, pattern = "TENURE BY OCCUPANTS PER ROOM"))
+```
+
+In addition to the variables in the tenure section, variables 'B25014_003', 'B25014_004', 'B25014_005', 'B25014_006', 'B25014_007', 'B25014_009', 'B25014_010', 'B25014_011', 'B25014_012', and 'B25014_013' contain information on the number of occupants per room, which can be a useful measure of crowding.
+
+# Data Download
+
+In the code block below, we download all information on our variables of interest from the American Community Survey 5-Year Estimates for our year and geography of interest, which is ZCTA in 2019. The variable argument can take a vector of multiple variable names. This is recommended to reduce the number of API calls, since too many calls can result in having to wait a bit before making another API call. These API calls must be repeated for each year of data that we are interested in.
 
 ```{r}
-acsData <- tidycensus::get_acs(geography = "zip code tabulation area", variables = "B17001_002", year = 2019, survey = "acs5")
+# Create a character vector containing all the variables of interest, which will be downloaded by get_acs.
+variableNames <- c('B17001_001', 'B17001_002', 'B20004_001', 'B20004_002', 'B20004_003', 'B20004_004', 'B20004_005', 'B20004_006', 'B25064_001', 'B25071_001', 'B25014_001', 'B25014_002', 'B25014_008', 'B25014_003', 'B25014_004', 'B25014_005', 'B25014_006', 'B25014_007', 'B25014_009', 'B25014_010', 'B25014_011', 'B25014_012', 'B25014_013')
+
+acsData <- tidycensus::get_acs(geography = "zip code tabulation area", variables = variableNames, year = 2019, survey = "acs5")
 ```
 
 Looking at the first ten rows of data, the data frame returned has 5 columns, which are GEOID, NAME, variable, estimate, and moe. "GEOID" and "NAME" both contain the ZCTA and name also specifies the level of the geography. "variable" contains the name of the variable that was requested, and "estimate" and "moe" contain the value and margin of error of the variable, respectively. 
@@ -59,8 +131,25 @@ Looking at the first ten rows of data, the data frame returned has 5 columns, wh
 head(acsData, 10) %>% kableExtra::kable()
 ```
 
+# Data Cleaning
+
+When downloaded from the ACS, the data returned contains a row for each ZCTA and variable. The first step is to reshape the data by casting it from wide to long using the "reshape2" package.
+
+```{r}
+library(reshape2)
+acsDataReshaped <- reshape2::dcast(acsData, formula = GEOID + NAME ~ variable, value.var = "estimate")
+```
+
+The long data set has a column for each variable containing the estimate of that variable with each row being a single ZCTA.
+
+```{r}
+head(acsDataReshaped, 10) %>% kableExtra::kable()
+```
+
+# Data Output
+
 Here we output the data frame.
 
 ```{r eval = FALSE}
-readr::write_csv(acsData, "ACS_Data.csv")
+readr::write_csv(acsDataReshaped, "ACS_Data.csv")
 ```

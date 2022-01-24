@@ -138,6 +138,9 @@ When downloaded from the ACS, the data returned contains a row for each ZCTA and
 ```{r}
 library(reshape2)
 acsDataReshaped <- reshape2::dcast(acsData, formula = GEOID + NAME ~ variable, value.var = "estimate")
+acsDataReshapedMoe <- reshape2::dcast(acsData, formula = GEOID + NAME ~ variable, value.var = "moe")
+colnames(acsDataReshapedMoe)[3:44] <- paste0(colnames(acsDataReshapedMoe)[3:44], "_moe")
+acsDataReshaped <- inner_join(acsDataReshaped, acsDataReshapedMoe, by = c("GEOID" = "GEOID", "NAME" = "NAME"))
 ```
 
 The long data set has a column for each variable containing the estimate of that variable with each row being a single ZCTA.
@@ -151,5 +154,5 @@ head(acsDataReshaped, 10) %>% kableExtra::kable()
 Here we output the data frame.
 
 ```{r eval = FALSE}
-readr::write_csv(acsDataReshaped, "ACS_Data.csv", na = "")
+readr::write_csv(acsDataReshaped, "ACS_Data_Moe.csv", na = "")
 ```

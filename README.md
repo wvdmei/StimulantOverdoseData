@@ -5,6 +5,8 @@ This repository contains the following files:
 
 ACS_Data.csv which is output from the API call
 
+ACS_Data_WithMoe.csv which is output from the API call with margin of errors for the variables
+
 DatasetCreation.Rmd which is the code and documentation for downloading and processing data.
 
 DatasetCreation.html is the rendered output of that R markdown file.
